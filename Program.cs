@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Management.Fluent;
+// using Microsoft.Azure.Management.Compute.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using System.Linq;
+using Microsoft.Azure.Management.Compute.Fluent.Models;
+using System.Collections.Generic;
 
 namespace startrunnerscriptextension
 {
@@ -36,14 +39,24 @@ namespace startrunnerscriptextension
 
             Console.WriteLine(vms.Count());
 
-            tihuangvmss = await tihuangvmss.Update()
-                .DefineNewExtension("CustomScriptForLinux")
-                .WithPublisher("Microsoft.Azure.Extensions")
-                .WithType("CustomScript")
-                .WithVersion("2.0")
-                .WithMinorVersionAutoUpgrade()
-                .WithPublicSetting("fileUris", "https://raw.githubusercontent.com/TingluoHuang/startrunnerscriptextension/main/run.sh")
-                .Attach().ApplyAsync();
+            var vmId = vms.First().InstanceId;
+            Console.WriteLine(vmId);
+
+            // tihuangvmss = await tihuangvmss.Update()
+            //     .DefineNewExtension("CustomScriptForLinux")
+            //     .WithPublisher("Microsoft.Azure.Extensions")
+            //     .WithType("CustomScript")
+            //     .WithVersion("2.0")
+            //     .WithMinorVersionAutoUpgrade()
+            //     .WithPublicSetting("fileUris", "https://raw.githubusercontent.com/TingluoHuang/startrunnerscriptextension/main/run.sh")
+            //     .Attach().ApplyAsync();
+
+            var command = new RunCommandInput("RunShellScript");
+            command.Parameters = new List<RunCommandInputParameter>();
+            command.Parameters.Add(new RunCommandInputParameter() { Name = "-c", Value = "\"echo hello world\"" });
+            var runResult = await tihuangvmss.RunCommandVMInstanceAsync(vmId, command);
+            
+            Console.WriteLine(runResult.Value.First().Message);
         }
     }
 }
